@@ -5,6 +5,9 @@ error_reporting(E_ALL);
 $has_error = false;
 $error_msg = "";
 $filename = "";
+$content = "";
+$title = "";
+$messages = array();
 
 try {
   if (!isset($_FILES["file"])) {
@@ -26,16 +29,49 @@ try {
     }
   }
 
-  if (!($fp = fopen($filename, "r"))) {
+  if (($content = file_get_contents($filename)) === false) {
     throw new RuntimeException("ファイル読み込み失敗");
   }
 
-  while (!feof($fp)) {
-    $load = fgets($fp, 4096);
-    print $load . "<br>";
-  }
+  $date = "";
 
-  fclose($fp);
+  foreach (explode("\r\n", $content) as $line) {
+    if ($line != "") {
+      $items = explode("\t", $line);
+      
+      switch (count($items)) {
+        case 1:
+          if (strpos($items[0], "[LINE]") !== false) {
+            $title = $items[0];
+          }
+          else if (strpos($items[0], "保存日時")) {
+
+          }
+          else {
+            $date = explode("(", $items[0])[0];
+          }
+        
+          break;
+
+        case 2:
+          $messages[] = array(
+            "date" => $date . " " . explode("\t", $line)[0],
+            "content" => explode("\t", $line)[1],
+          );
+      
+          break;
+
+        case 3:
+          $messages[] = array(
+            "date" => $date . " " . explode("\t", $line)[0],
+            "name" => explode("\t", $line)[1],
+            "content" => explode("\t", $line)[2]
+          );
+        
+          break;
+      }
+    }
+  }
 }
 catch (RuntimeException $e) {
   $has_error = true;
@@ -55,6 +91,16 @@ if ($has_error == true) {
 ?>
     <p><?php echo $error_msg; ?></p>
 <?php
+}
+else {
+?>
+    <h2><?php echo $title; ?></h2>
+<?php
+foreach ($messages as $message) {
+?>
+    <p><?php var_dump($message); ?></p>
+<?php
+  }
 }
 ?>
   </body>
