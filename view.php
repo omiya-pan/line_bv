@@ -1,14 +1,16 @@
 <?php
+ini_set("display_errors", On);
+error_reporting(E_ALL);
 try {
   if (!isset($_FILES["file"])) {
     throw new RuntimeException("不正なページ遷移");
   }
   else {
     if (!isset($_FILES["upfile"]["error"]) || !is_int($_FILES["upfile"]["error"])) {
-      throw new RuntimeExeption("不正なパラメータ");
+      throw new RuntimeException("不正なパラメータ");
     }
     else if ($_FILES["file"]["error"] !== UPLOAD_ERR_OK) {
-      throw new RuntimeExeption("不正なファイル");
+      throw new RuntimeException("不正なファイル");
     }
     else {
       $filename = $_FILES["file"]["name"];
