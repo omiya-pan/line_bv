@@ -2,6 +2,7 @@
 ini_set("display_errors", On);
 error_reporting(E_ALL);
 
+$username = $_POST["username"];
 $has_error = false;
 $error_msg = "";
 $filename = "";
@@ -55,7 +56,8 @@ try {
 
         case 2:
           $messages[] = array(
-            "date" => $date . " " . explode("\t", $line)[0],
+            "date" => $date,
+            "time" => explode("\t", $line)[0],
             "content" => explode("\t", $line)[1],
           );
       
@@ -63,7 +65,8 @@ try {
 
         case 3:
           $messages[] = array(
-            "date" => $date . " " . explode("\t", $line)[0],
+            "date" => $date,
+            "time" => explode("\t", $line)[0],
             "name" => explode("\t", $line)[1],
             "content" => explode("\t", $line)[2]
           );
@@ -83,6 +86,7 @@ catch (RuntimeException $e) {
   <head>
     <meta charset="UTF-8">
     <title>LINE Backup Viewer</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <h1>LINE Backup Viewer</h1>
@@ -94,14 +98,55 @@ if ($has_error == true) {
 }
 else {
 ?>
-    <h2><?php echo $title; ?></h2>
+    <div id="line_container">
+      <header>
+        <h2><?php echo $title; ?></h2>
+      </header>
+      <div id="messages">
 <?php
-foreach ($messages as $message) {
+  $prev_date = "";
+
+  foreach ($messages as $message) {
+    if ($message["date"] != $prev_date) {
 ?>
-    <p><?php var_dump($message); ?></p>
+        <div class="date"><?php echo $message["date"]; ?></div>
 <?php
+    }
+
+    switch (count($message)) {
+      case 3:
+?>
+        <div class="notice"><?php echo $message["time"]; ?><br><?php echo $message["content"]; ?></div>
+<?php
+        break;
+    
+      case 4:
+        if ($message["name"] == $username) {
+?>
+        <div class="message message_right">
+          <div class="content"><?php echo $message["content"]; ?></div>
+          <div class="time"><?php echo $message["time"]; ?></div>
+        </div>
+<?php
+        }
+        else {
+?>
+        <div class="message message_left">
+          <div class="name"><?php echo $message["name"]; ?></div>
+          <div class="content"><?php echo $message["content"]; ?></div>
+          <div class="time"><?php echo $message["time"]; ?></div>
+        </div>
+<?php            
+        }
+
+        break;
+    }
+
+    $prev_date = $message["date"];
   }
 }
 ?>
+      </div>
+    </div>
   </body>
 </html>
